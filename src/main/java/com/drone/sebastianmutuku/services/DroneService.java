@@ -38,6 +38,17 @@ public class DroneService implements DroneServiceInterface {
         data.put("droneState", drone.getDroneState());
     }
 
+    private static Object droneSize(List<Drone> drone, JSONObject response) {
+        if (drone.size() > 0) {
+            response.put("responseData", drone);
+            response.put("message", "Successfully loaded Data");
+            return response;
+        }
+        response.put("responseData", "[]");
+        response.put("message", "Data not found in the database");
+        return response;
+    }
+
     @Override
     public Object createDrone(Drone drone) {
         response = new JSONObject();
@@ -47,7 +58,7 @@ public class DroneService implements DroneServiceInterface {
             if (exists == null) {
                 if (drone.getDroneWeight() > 500) {
                     response.put("responseData", "[]");
-                    response.put("message", "drone's maximum weight exceeded 500   [" + drone.getDroneWeight() + "]");
+                    response.put("message", "drone's maximum weight exceeded 500  [" + drone.getDroneWeight() + "]");
                     return response;
                 }
                 if (drone.getDroneBatteryPercentage() > 100) {
@@ -109,25 +120,31 @@ public class DroneService implements DroneServiceInterface {
                 drone.setDroneState(DroneState.LOADING.name());
                 droneRepo.save(drone);
                 if (checkWeightLimit(loadedDroneDao.getMedicines())) {
-                    loadedDroneDao.getMedicines().stream().forEach(load -> {
-                        medicineDetails.setCode(load.getCode());
-                        medicineDetails.setImage(load.getImage());
-                        medicineDetails.setWeight(load.getWeight());
-                        medicineDetails.setName(load.getName());
-                        medicineRepo.save(medicineDetails);
+                    if (drone.getDroneBatteryPercentage() > 25) {
+                        loadedDroneDao.getMedicines().stream().forEach(load -> {
+                            medicineDetails.setCode(load.getCode());
+                            medicineDetails.setImage(load.getImage());
+                            medicineDetails.setWeight(load.getWeight());
+                            medicineDetails.setName(load.getName());
+                            medicineRepo.save(medicineDetails);
 
-                    });
-                    drone.setDroneState(DroneState.LOADED.name());
-                    droneRepo.save(drone);
-                    JSONObject data = new JSONObject();
-                    data.put("medicineCode", medicineDetails.getCode());
-                    data.put("droneSerialNumber", drone.getDroneSerialNumber());
-                    data.put("medicineImage", medicineDetails.getImage());
-                    data.put("medicineName", medicineDetails.getName());
-                    data.put("medicineWeight", medicineDetails.getWeight());
-                    response.put("message", "Successfully loaded drone [" + drone.getDroneSerialNumber() + "]");
-                    response.put("responseData", data);
+                        });
+                        drone.setDroneState(DroneState.LOADED.name());
+                        droneRepo.save(drone);
+                        JSONObject data = new JSONObject();
+                        data.put("medicineCode", medicineDetails.getCode());
+                        data.put("droneSerialNumber", drone.getDroneSerialNumber());
+                        data.put("medicineImage", medicineDetails.getImage());
+                        data.put("medicineName", medicineDetails.getName());
+                        data.put("medicineWeight", medicineDetails.getWeight());
+                        response.put("message", "Successfully loaded drone [" + drone.getDroneSerialNumber() + "]");
+                        response.put("responseData", data);
+                        return response;
+                    }
+                    response.put("message", "Drone's battery too low [" + drone.getDroneBatteryPercentage() + "]");
+                    response.put("responseData", "[]");
                     return response;
+
                 }
                 response.put("message", "Drone maximum weight exceeded " + drone.getDroneWeight());
                 response.put("responseData", "[]");
@@ -153,9 +170,7 @@ public class DroneService implements DroneServiceInterface {
         response = new JSONObject();
         try {
             List<Drone> droneData = droneRepo.findByDroneState(DroneState.IDLE + "");
-            response.put("responseData", droneData);
-            response.put("message", "Successfully loaded Data");
-            return response;
+            return droneSize(droneData, response);
         } catch (Exception e) {
             response = new JSONObject();
             response.put("responseData", "[]");
@@ -228,17 +243,22 @@ public class DroneService implements DroneServiceInterface {
             if (drone != null) {
                 if (drone.getDroneBatteryPercentage() > 100) {
                     response.put("responseData", "[]");
-                    response.put("message", "Drone's Battery too charged " + drone.getDroneBatteryPercentage());
+                    response.put("message", "Drone's Battery too charged [" + drone.getDroneBatteryPercentage() + "]");
                     return response;
                 }
-                drone.setDroneBatteryPercentage(drone.getDroneBatteryPercentage());
+                if (droneChargeDao.getDroneBatteryLevel() > 100) {
+                    response.put("responseData", "[]");
+                    response.put("message", "Invalid battery charge passed [" + droneChargeDao.getDroneBatteryLevel() + "]");
+                    return response;
+                }
+                drone.setDroneBatteryPercentage(droneChargeDao.getDroneBatteryLevel());
                 droneRepo.save(drone);
-                response.put("responseData", drone);
-                response.put("message", "Successfully charged Drone " + drone.getDroneBatteryPercentage());
+                getDroneData(drone, response);
+                response.put("message", "Successfully charged Drone [" + drone.getDroneBatteryPercentage() + "]");
                 return response;
             }
             response.put("responseData", "[]");
-            response.put("message", "Drone Serial Number " + droneChargeDao.getDroneSerialNumber() + " doesn't exist ");
+            response.put("message", "Drone Serial Number {" + droneChargeDao.getDroneSerialNumber() + "] doesn't exist ");
             return response;
 
         } catch (Exception e) {
@@ -254,8 +274,7 @@ public class DroneService implements DroneServiceInterface {
         response = new JSONObject();
         try {
             List<Drone> drone = droneRepo.findAll();
-            response.put("responseData", drone);
-            response.put("message", "Successfully loaded Data");
+            return droneSize(drone, response);
         } catch (Exception e) {
             response = new JSONObject();
             response.put("responseData", "");

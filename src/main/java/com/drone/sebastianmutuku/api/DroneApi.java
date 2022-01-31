@@ -85,7 +85,7 @@ public class DroneApi {
         }
     }
 
-    @PostMapping("chargedrorone")
+    @PostMapping("chargedrone")
     public ResponseEntity chargeAdrone(@RequestBody DroneChargeDao droneChargeDao) {
         if (droneChargeDao != null) {
             return ResponseEntity.status(HttpStatus.ACCEPTED).body(droneService.chargeAdrone(droneChargeDao).toString());
