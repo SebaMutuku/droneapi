@@ -1,7 +1,7 @@
 spring:
   datasource:
     driverClassName: org.h2.Driver
-    password: password
+    password: ne3pdUFlN4vMeukN6k46fPcoAJ6M2+pv
     url: jdbc:h2:mem:testdb
     username: sa
   h2:
@@ -9,6 +9,10 @@ spring:
       enabled: true
   jpa:
     database-platform: org.hibernate.dialect.H2Dialect
+
+jasypt:
+  encryptor:
+    password: database_salt
 delay:
   in:
     milliseconds: 2000

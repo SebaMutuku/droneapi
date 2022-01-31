@@ -25,6 +25,7 @@ public class DroneApi {
     public ResponseEntity<?> createDrone(@RequestBody Drone drone) {
         if (drone != null) {
             return ResponseEntity.status(HttpStatus.ACCEPTED).body(droneService.createDrone(drone).toString());
+
         } else {
             response = new JSONObject();
             response.put("message", "Invalid Request data. Check to ensure all Drone fields are passed");
@@ -34,10 +35,10 @@ public class DroneApi {
 
     }
 
-    @PostMapping("updatedrone")
+    @PostMapping("updatedronestate")
     public ResponseEntity updateDroneState(@RequestBody DroneParamsDao droneParamsDao) {
         if (droneParamsDao != null) {
-            return new ResponseEntity<>(droneService.updateDroneState(droneParamsDao), HttpStatus.ACCEPTED);
+            return ResponseEntity.status(HttpStatus.ACCEPTED).body(droneService.updateDroneState(droneParamsDao).toString());
         } else {
             response = new JSONObject();
             response.put("message", "Invalid Drone State data. Check to ensure all Drone fields are passed");
@@ -47,10 +48,10 @@ public class DroneApi {
 
     }
 
-    @GetMapping("loadDrone/")
+    @PostMapping("loaddrone")
     public ResponseEntity loadDroneWithMedication(@RequestBody LoadedDroneDao loadedDroneDao) {
         if (loadedDroneDao != null) {
-            return new ResponseEntity<>(droneService.loadDrone(loadedDroneDao), HttpStatus.ACCEPTED);
+            return ResponseEntity.status(HttpStatus.ACCEPTED).body(droneService.loadDrone(loadedDroneDao).toString());
         } else {
             response = new JSONObject();
             response.put("message", "SerialNumber not passed. Cannot process your data");
@@ -75,7 +76,7 @@ public class DroneApi {
     @GetMapping("checkalldronedicines/{droneSerialNumber}")
     public ResponseEntity checkAllMedicines(@PathVariable("droneSerialNumber") String droneSerialNumber) {
         if (!droneSerialNumber.trim().isEmpty()) {
-            return new ResponseEntity<>(droneService.checkMedicinesPerDrone(droneSerialNumber), HttpStatus.ACCEPTED);
+            return ResponseEntity.status(HttpStatus.ACCEPTED).body(droneService.checkMedicinesPerDrone(droneSerialNumber).toString());
         } else {
             response = new JSONObject();
             response.put("message", "SerialNumber not passed. Cannot process your data");
@@ -87,7 +88,7 @@ public class DroneApi {
     @PostMapping("chargedrorone")
     public ResponseEntity chargeAdrone(@RequestBody DroneChargeDao droneChargeDao) {
         if (droneChargeDao != null) {
-            return new ResponseEntity<>(droneService.chargeAdrone(droneChargeDao), HttpStatus.ACCEPTED);
+            return ResponseEntity.status(HttpStatus.ACCEPTED).body(droneService.chargeAdrone(droneChargeDao).toString());
         } else {
             response = new JSONObject();
             response.put("message", "SerialNumber not passed. Cannot process your data");
@@ -100,7 +101,7 @@ public class DroneApi {
     @GetMapping("checkdronebatterylevel")
     public ResponseEntity checkDroneBatteryLevel(@PathVariable("droneSerialNumber") String droneSerialNumber) {
         if (!droneSerialNumber.trim().isEmpty()) {
-            return new ResponseEntity<>(droneService.checkDroneBatteryLevel(droneSerialNumber), HttpStatus.ACCEPTED);
+            return ResponseEntity.status(HttpStatus.ACCEPTED).body(droneService.checkDroneBatteryLevel(droneSerialNumber).toString());
         } else {
             response = new JSONObject();
             response.put("message", "SerialNumber not passed. Cannot process your data");
@@ -114,7 +115,7 @@ public class DroneApi {
         JSONObject jsonObject = new JSONObject();
         jsonObject.put("response", 1);
         jsonObject.put("first", true);
-        return new ResponseEntity<>(droneService.listIdleDrones().toString(), HttpStatus.ACCEPTED);
+        return ResponseEntity.status(HttpStatus.FOUND).body(droneService.listIdleDrones().toString());
 
     }
 

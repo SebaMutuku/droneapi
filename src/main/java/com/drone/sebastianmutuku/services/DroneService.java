@@ -29,6 +29,15 @@ public class DroneService implements DroneServiceInterface {
     @Autowired
     MedicineRepo medicineRepo;
 
+    private static void getDroneData(Drone drone, JSONObject data) {
+        data.put("droneId", drone.getDroneId());
+        data.put("droneSerialNumber", drone.getDroneSerialNumber());
+        data.put("droneModel", drone.getDroneModel());
+        data.put("droneWeight", drone.getDroneWeight());
+        data.put("droneBatteryPercentage", drone.getDroneBatteryPercentage());
+        data.put("droneState", drone.getDroneState());
+    }
+
     @Override
     public Object createDrone(Drone drone) {
         response = new JSONObject();
@@ -38,7 +47,7 @@ public class DroneService implements DroneServiceInterface {
             if (exists == null) {
                 if (drone.getDroneWeight() > 500) {
                     response.put("responseData", "[]");
-                    response.put("message", "drone maximum weight exceed " + drone.getDroneWeight());
+                    response.put("message", "drone's maximum weight exceeded 500   [" + drone.getDroneWeight() + "]");
                     return response;
                 }
                 if (drone.getDroneBatteryPercentage() > 100) {
@@ -58,12 +67,7 @@ public class DroneService implements DroneServiceInterface {
                 instanceOfDrone.setDroneSerialNumber(drone.getDroneSerialNumber());
                 instanceOfDrone.setDroneBatteryPercentage(drone.getDroneBatteryPercentage());
                 droneRepo.save(instanceOfDrone);
-                response.put("droneId", instanceOfDrone.getDroneId());
-                response.put("droneSerialNumber", instanceOfDrone.getDroneSerialNumber());
-                response.put("droneModel", instanceOfDrone.getDroneModel());
-                response.put("droneWeight", instanceOfDrone.getDroneWeight());
-                response.put("droneBatteryPercentage", instanceOfDrone.getDroneBatteryPercentage());
-                response.put("droneState", instanceOfDrone.getDroneState());
+                getDroneData(instanceOfDrone, response);
                 response.put("message", "Successfully saved drone [" + instanceOfDrone.getDroneSerialNumber() + "] to database");
             } else {
                 response.put("responseData", "[]");
@@ -115,8 +119,14 @@ public class DroneService implements DroneServiceInterface {
                     });
                     drone.setDroneState(DroneState.LOADED.name());
                     droneRepo.save(drone);
-                    response.put("message", "Successfully loaded drone " + drone.getDroneSerialNumber());
-                    response.put("responseData", drone);
+                    JSONObject data = new JSONObject();
+                    data.put("medicineCode", medicineDetails.getCode());
+                    data.put("droneSerialNumber", drone.getDroneSerialNumber());
+                    data.put("medicineImage", medicineDetails.getImage());
+                    data.put("medicineName", medicineDetails.getName());
+                    data.put("medicineWeight", medicineDetails.getWeight());
+                    response.put("message", "Successfully loaded drone [" + drone.getDroneSerialNumber() + "]");
+                    response.put("responseData", data);
                     return response;
                 }
                 response.put("message", "Drone maximum weight exceeded " + drone.getDroneWeight());
@@ -125,7 +135,7 @@ public class DroneService implements DroneServiceInterface {
 
 
             }
-            response.put("message", "Drone state is not idle");
+            response.put("message", "Drone state is not idle or not found");
             response.put("responseData", "[]");
 
 
@@ -161,22 +171,19 @@ public class DroneService implements DroneServiceInterface {
         try {
             Drone drone = droneRepo.findByDroneSerialNumber(droneParamsDao.getDroneSerialNumber());
             if (drone != null) {
-                List<DroneModel> invalidDrone = Arrays.stream(DroneModel.values()).filter(droneModel -> droneModel.toString().toLowerCase().equalsIgnoreCase(drone.getDroneModel())).collect(Collectors.toList());
+                List<DroneModel> invalidDrone = Arrays.stream(DroneModel.values()).filter(droneModel -> !droneModel.toString().toLowerCase().equalsIgnoreCase(drone.getDroneModel())).collect(Collectors.toList());
                 if (invalidDrone.size() > 0) {
-                    response.put("message", "Invalid Drone State " + droneParamsDao.getDroneState());
+                    response.put("message", "Invalid Drone State [" + droneParamsDao.getDroneSerialNumber() + "]");
                     response.put("responseData", "[]");
                     return response;
                 }
-//                if (Arrays.asList(DroneState.values()).toString().toLowerCase().contains(droneParams.getDroneState().toLowerCase())) {
-//
-//                }
                 drone.setDroneState(droneParamsDao.getDroneState());
                 droneRepo.save(drone);
-                response.put("message", "Successfully updated Drone state " + drone.getDroneState());
+                response.put("message", "Successfully updated Drone state [" + drone.getDroneState() + "]");
                 response.put("responseData", drone);
                 return response;
             }
-            response.put("message", "Invalid drone serial number" + droneParamsDao.getDroneSerialNumber());
+            response.put("message", "Invalid drone serial number [" + droneParamsDao.getDroneSerialNumber() + "]");
             response.put("responseData", "[]");
             return response;
 
@@ -194,7 +201,9 @@ public class DroneService implements DroneServiceInterface {
         try {
             Drone drone = droneRepo.findByDroneSerialNumber(droneSerialNumber);
             if (drone != null) {
-                response.put("responseData", drone);
+                JSONObject data = new JSONObject();
+                getDroneData(drone, data);
+                response.put("responseData", data);
                 response.put("message", "success");
                 return response;
             }
@@ -257,17 +266,6 @@ public class DroneService implements DroneServiceInterface {
 
     private boolean checkWeightLimit(List<MedicineDetails> medicineDetails) {
         AtomicReference<Double> weight = new AtomicReference<>(0.0);
-
-//        for (MedicineDetails med : medicineDetails) {
-//            try {
-//                if (checkValidMedecine(med)) {
-//                    weight = weight + med.getWeight();
-//                }
-//            } catch (Exception e) {
-//                e.printStackTrace();
-//            }
-//
-//        }
         medicineDetails.forEach(med -> {
             try {
                 if (checkValidMedecine(med)) {
