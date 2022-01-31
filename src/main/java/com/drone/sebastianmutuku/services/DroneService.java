@@ -191,8 +191,8 @@ public class DroneService implements DroneServiceInterface {
         try {
             Drone drone = droneRepo.findByDroneSerialNumber(droneParamsDao.getDroneSerialNumber());
             if (drone != null) {
-                List<DroneModel> invalidDrone = Arrays.stream(DroneModel.values()).filter(droneModel -> !droneModel.toString().toLowerCase().equalsIgnoreCase(drone.getDroneModel())).collect(Collectors.toList());
-                if (invalidDrone.size() > 0) {
+                List<DroneState> droneState = Arrays.stream(DroneState.values()).filter(state -> state.toString().toLowerCase().equals(drone.getDroneModel())).collect(Collectors.toList());
+                if (droneState.size() > 0) {
                     response.put("message", "Invalid Drone State [" + droneParamsDao.getDroneSerialNumber() + "]");
                     response.put("responseData", "[]");
                     return response;
