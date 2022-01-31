@@ -99,8 +99,13 @@ public class DroneService implements DroneServiceInterface {
         response = new JSONObject();
         try {
             List<DroneMedication> details = medicineRepo.findByDroneSerialNumber(serialNumber);
-            response.put("message", "Successfully fetched data; drone  " + serialNumber);
-            response.put("responseData", details);
+            if (details.size() > 0) {
+                response.put("message", "Data for the drone not found on the database");
+                response.put("responseData", details);
+                return response;
+            }
+            response.put("message", "Drone serial number not found [" + serialNumber + "]");
+            response.put("responseData", "[]");
             return response;
 
         } catch (Exception e) {
@@ -217,12 +222,15 @@ public class DroneService implements DroneServiceInterface {
             Drone drone = droneRepo.findByDroneSerialNumber(droneSerialNumber);
             if (drone != null) {
                 JSONObject data = new JSONObject();
-                getDroneData(drone, data);
+                data.put("droneId", drone.getDroneId());
+                data.put("droneSerialNumber", drone.getDroneSerialNumber());
+                data.put("droneBatteryLevel", drone.getDroneBatteryPercentage());
+                data.put("droneState", drone.getDroneState());
                 response.put("responseData", data);
-                response.put("message", "success");
+                response.put("message", "Successfully loaded data");
                 return response;
             }
-            response.put("message", "Drone serialnumber " + droneSerialNumber + " not found");
+            response.put("message", "Drone serialnumber [" + droneSerialNumber + "] not found");
             response.put("responseData", "[]");
             return response;
 
@@ -243,7 +251,7 @@ public class DroneService implements DroneServiceInterface {
             if (drone != null) {
                 if (drone.getDroneBatteryPercentage() > 100) {
                     response.put("responseData", "[]");
-                    response.put("message", "Drone's Battery too charged [" + drone.getDroneBatteryPercentage() + "]");
+                    response.put("message", "Drone's Battery too charged [" + droneChargeDao.getDroneBatteryLevel() + "]");
                     return response;
                 }
                 if (droneChargeDao.getDroneBatteryLevel() > 100) {
@@ -254,11 +262,11 @@ public class DroneService implements DroneServiceInterface {
                 drone.setDroneBatteryPercentage(droneChargeDao.getDroneBatteryLevel());
                 droneRepo.save(drone);
                 getDroneData(drone, response);
-                response.put("message", "Successfully charged Drone [" + drone.getDroneBatteryPercentage() + "]");
+                response.put("message", "Successfully charged Drone [" + droneChargeDao.getDroneSerialNumber() + "]");
                 return response;
             }
             response.put("responseData", "[]");
-            response.put("message", "Drone Serial Number {" + droneChargeDao.getDroneSerialNumber() + "] doesn't exist ");
+            response.put("message", "Drone Serial Number [" + droneChargeDao.getDroneSerialNumber() + "] doesn't exist ");
             return response;
 
         } catch (Exception e) {
