@@ -212,7 +212,7 @@ public class DroneService implements DroneServiceInterface {
             return response;
 
         } catch (Exception e) {
-            response.put("message", "An error occurred" + e.getMessage());
+            response.put("message", "An error occurred [" + e.getMessage()+"]");
             response.put("responseData", "[]");
             return response;
 
@@ -306,7 +306,7 @@ public class DroneService implements DroneServiceInterface {
                 e.printStackTrace();
             }
         });
-        return weight.get() <= 500.00;
+        return weight.get() <= 500.0;
     }
 
     private boolean checkValidMedecine(MedicineDetails medicine) {
@@ -314,7 +314,7 @@ public class DroneService implements DroneServiceInterface {
         if (regex.length() > 0) {
             return false;
         }
-        String code = medicine.getCode().replaceAll("[A-Z0-9-_]+", "");
-        return code.length() <= 0;
+        String medicineCode = medicine.getCode().replaceAll("[A-Z0-9-_]+", "");
+        return medicineCode.length() <= 0;
     }
 }

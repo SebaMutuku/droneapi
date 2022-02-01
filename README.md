@@ -70,3 +70,26 @@ While implementing your solution **please take care of the following requirement
 ---
 
 :scroll: **END** 
+##Drone API 
+
+###Prerequisites 
+
+Below are the requirements for this project to run. Ensure you have the below mentioned modules or dependencies
+- Java 11 or openjdk 11 (https://openjdk.java.net/projects/jdk/11/)
+- Maven 3.6.3 (https://maven.apache.org)
+
+### How to run tests on the project
+
+- Clone the project repository from github repo https://github.com/SebaMutuku/droneapi. Ensure you are on main branch. You can create a branch of your choice from main
+- There are two ways to run the tests
+1. Navigate to the root of the project and execute command mvn test. This will execute all test classes .Other ways are mvn -Dtest=com.drone.sebastianmutuku.DroneServiceTest test to execute a specific class
+2. Open to project on IDE of preference, navigate to tests folder, open DroneServiceTest class and run it on the top left section
+
+##How to run the application
+- Open the project with the IDE of your choice and run it as a springboot application
+- Navigate to the project root folder and execute the command mvn spring-boot:run
+
+##Other information
+- The application runs on port 4501 specified on application.yml file. Feel free to change it to the port of your choice
+- The database password is encrypted with jasypt encryption method. You can read more about it here https://www.geeksforgeeks.org/how-to-encrypt-passwords-in-a-spring-boot-project-using-jasypt
+- To create an executable file, run the command mvn package -DskipTests
